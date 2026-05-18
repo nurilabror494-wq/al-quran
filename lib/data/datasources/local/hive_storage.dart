@@ -11,6 +11,8 @@ class HiveStorage {
   static const String lastReadBoxName = 'last_read_box';
   static const String downloadBoxName = 'download_box';
 
+  static const String settingsBoxName = 'settings_box';
+
   Future<void> init() async {
     await Hive.initFlutter();
     
@@ -24,6 +26,7 @@ class HiveStorage {
     await Hive.openBox<List>(tafsirBoxName);
     await Hive.openBox<Map>(lastReadBoxName);
     await Hive.openBox<String>(downloadBoxName);
+    await Hive.openBox(settingsBoxName);
   }
 
   Future<void> saveSurahs(List<SurahModel> surahs) async {
@@ -78,6 +81,11 @@ class HiveStorage {
     return box.get('last_read');
   }
 
+  Future<void> clearLastRead() async {
+    final box = Hive.box<Map>(lastReadBoxName);
+    await box.delete('last_read');
+  }
+
   Future<void> saveDownloadedAudioPath(String url, String localPath) async {
     final box = Hive.box<String>(downloadBoxName);
     await box.put(url, localPath);
@@ -86,5 +94,15 @@ class HiveStorage {
   String? getDownloadedAudioPath(String url) {
     final box = Hive.box<String>(downloadBoxName);
     return box.get(url);
+  }
+
+  void saveSettings(String key, dynamic value) {
+    final box = Hive.box(settingsBoxName);
+    box.put(key, value);
+  }
+
+  dynamic getSettings(String key, {dynamic defaultValue}) {
+    final box = Hive.box(settingsBoxName);
+    return box.get(key, defaultValue: defaultValue);
   }
 }

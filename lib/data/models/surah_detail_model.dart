@@ -6,20 +6,28 @@ part 'surah_detail_model.g.dart';
 
 @HiveType(typeId: 2)
 class SurahDetailModel extends SurahDetail {
+  @override
   @HiveField(0)
   final int nomor;
+  @override
   @HiveField(1)
   final String nama;
+  @override
   @HiveField(2)
   final String namaLatin;
+  @override
   @HiveField(3)
   final int jumlahAyat;
+  @override
   @HiveField(4)
   final String tempatTurun;
+  @override
   @HiveField(5)
   final String arti;
+  @override
   @HiveField(6)
   final String deskripsi;
+  @override
   @HiveField(7)
   final String audioFull;
   @HiveField(8)

@@ -8,6 +8,7 @@ import '../../core/network/download_manager.dart';
 import '../../presentation/bloc/surah_list/surah_list_bloc.dart';
 import '../../presentation/bloc/surah_detail/surah_detail_bloc.dart';
 import '../../presentation/bloc/tafsir/tafsir_bloc.dart';
+import '../../presentation/bloc/settings/settings_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -41,4 +42,5 @@ Future<void> init() async {
   sl.registerFactory(() => SurahListBloc(repository: sl()));
   sl.registerFactory(() => SurahDetailBloc(repository: sl()));
   sl.registerFactory(() => TafsirBloc(repository: sl()));
+  sl.registerFactory(() => SettingsCubit(hiveStorage: sl()));
 }

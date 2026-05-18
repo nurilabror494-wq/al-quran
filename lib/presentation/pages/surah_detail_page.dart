@@ -8,6 +8,8 @@ import '../bloc/surah_detail/surah_detail_state.dart';
 import '../../core/network/download_manager.dart';
 import '../../data/datasources/local/hive_storage.dart';
 import 'tafsir_page.dart';
+import '../bloc/settings/settings_cubit.dart';
+import '../bloc/settings/settings_state.dart';
 
 class SurahDetailPage extends StatefulWidget {
   final int nomorSurah;
@@ -38,7 +40,10 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
     _audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
         if (mounted) {
-          setState(() => _playingAyahNomor = null);
+          setState(() {
+            _playingAyahNomor = null;
+            _isPlayingFullSurah = false;
+          });
         }
       }
     });
@@ -74,6 +79,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         await _audioPlayer.play();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gagal memutar audio')),
       );
@@ -104,6 +110,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         await _audioPlayer.play();
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gagal memutar audio')),
       );
@@ -114,6 +121,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
   void _downloadFullSurah(String url) async {
     setState(() => _isDownloading = true);
     final path = await sl<DownloadManager>().downloadAudio(url, 'surah_${widget.nomorSurah}.mp3', null);
+    if (!mounted) return;
     setState(() => _isDownloading = false);
     if (path != null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download selesai!')));
@@ -159,7 +167,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    color: Theme.of(context).primaryColor.withAlpha(13),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -188,63 +196,69 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                         final ayah = detail.ayat[index];
                         final isPlaying = _playingAyahNomor == ayah.nomorAyat;
                         
-                        return Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              'Ayat ${ayah.nomorAyat}',
-                              style: TextStyle(
-                                color: Theme.of(context).primaryColor,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill),
-                            color: Theme.of(context).primaryColor,
-                            iconSize: 36,
-                            onPressed: () {
-                              _playAudio(ayah.audio, ayah.nomorAyat);
-                            },
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        ayah.teksArab,
-                        textAlign: TextAlign.right,
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          height: 2.0,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        ayah.teksLatin,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Theme.of(context).primaryColor,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        ayah.teksIndonesia,
-                        style: const TextStyle(fontSize: 16),
-                      ),
-                    ],
-                  );
-                },
+                        return BlocBuilder<SettingsCubit, SettingsState>(
+                          builder: (context, settingsState) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).primaryColor.withAlpha(25),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(
+                                        'Ayat ${ayah.nomorAyat}',
+                                        style: TextStyle(
+                                          color: Theme.of(context).primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill),
+                                      color: Theme.of(context).primaryColor,
+                                      iconSize: 36,
+                                      onPressed: () {
+                                        _playAudio(ayah.audio, ayah.nomorAyat);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  ayah.teksArab,
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(
+                                    fontSize: settingsState.arabicFontSize,
+                                    fontWeight: FontWeight.bold,
+                                    height: 2.0,
+                                  ),
+                                ),
+                                if (settingsState.showTranslation) ...[
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    ayah.teksLatin,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Theme.of(context).primaryColor,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    ayah.teksIndonesia,
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
+                        );
+                      },
               ),
             ),
           ],

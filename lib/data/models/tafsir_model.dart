@@ -5,8 +5,10 @@ part 'tafsir_model.g.dart';
 
 @HiveType(typeId: 3)
 class TafsirModel extends Tafsir {
+  @override
   @HiveField(0)
   final int ayat;
+  @override
   @HiveField(1)
   final String teks;
 

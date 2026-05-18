@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import '../../models/surah_model.dart';
 import '../../models/surah_detail_model.dart';
 import '../../models/tafsir_model.dart';
