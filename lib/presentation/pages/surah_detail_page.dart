@@ -5,6 +5,9 @@ import '../../core/di/injection.dart';
 import '../bloc/surah_detail/surah_detail_bloc.dart';
 import '../bloc/surah_detail/surah_detail_event.dart';
 import '../bloc/surah_detail/surah_detail_state.dart';
+import '../../core/network/download_manager.dart';
+import '../../data/datasources/local/hive_storage.dart';
+import 'tafsir_page.dart';
 
 class SurahDetailPage extends StatefulWidget {
   final int nomorSurah;
@@ -23,10 +26,15 @@ class SurahDetailPage extends StatefulWidget {
 class _SurahDetailPageState extends State<SurahDetailPage> {
   final AudioPlayer _audioPlayer = AudioPlayer();
   int? _playingAyahNomor;
+  bool _isPlayingFullSurah = false;
+  bool _isDownloading = false;
 
   @override
   void initState() {
     super.initState();
+    // Save Last Read
+    sl<HiveStorage>().saveLastRead(widget.nomorSurah, 1, widget.namaSurah);
+    
     _audioPlayer.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
         if (mounted) {
@@ -48,10 +56,21 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         await _audioPlayer.pause();
         setState(() => _playingAyahNomor = null);
       } else {
-        setState(() => _playingAyahNomor = ayahNomor);
-        print('Playing audio for ayah $ayahNomor: $url');
+        setState(() {
+          _playingAyahNomor = ayahNomor;
+          _isPlayingFullSurah = false;
+        });
+        
+        // Check if downloaded
+        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(url);
+        final playUrl = localPath ?? url;
+
         await _audioPlayer.stop();
-        await _audioPlayer.setUrl(url);
+        if (localPath != null) {
+          await _audioPlayer.setFilePath(localPath);
+        } else {
+          await _audioPlayer.setUrl(playUrl);
+        }
         await _audioPlayer.play();
       }
     } catch (e) {
@@ -62,6 +81,47 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
     }
   }
 
+  void _playFullSurah(String url) async {
+    try {
+      if (_isPlayingFullSurah && _audioPlayer.playing) {
+        await _audioPlayer.pause();
+        setState(() => _isPlayingFullSurah = false);
+      } else {
+        setState(() {
+          _isPlayingFullSurah = true;
+          _playingAyahNomor = null;
+        });
+        
+        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(url);
+        final playUrl = localPath ?? url;
+
+        await _audioPlayer.stop();
+        if (localPath != null) {
+          await _audioPlayer.setFilePath(localPath);
+        } else {
+          await _audioPlayer.setUrl(playUrl);
+        }
+        await _audioPlayer.play();
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal memutar audio')),
+      );
+      setState(() => _isPlayingFullSurah = false);
+    }
+  }
+
+  void _downloadFullSurah(String url) async {
+    setState(() => _isDownloading = true);
+    final path = await sl<DownloadManager>().downloadAudio(url, 'surah_${widget.nomorSurah}.mp3', null);
+    setState(() => _isDownloading = false);
+    if (path != null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download selesai!')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Download gagal')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -69,6 +129,23 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.namaSurah),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.menu_book),
+              tooltip: 'Tafsir',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TafsirPage(
+                      nomorSurah: widget.nomorSurah,
+                      namaSurah: widget.namaSurah,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
         body: BlocBuilder<SurahDetailBloc, SurahDetailState>(
           builder: (context, state) {
@@ -78,15 +155,40 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
               return Center(child: Text(state.message));
             } else if (state is SurahDetailLoaded) {
               final detail = state.surahDetail;
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: detail.ayat.length,
-                separatorBuilder: (context, index) => const Divider(height: 32),
-                itemBuilder: (context, index) {
-                  final ayah = detail.ayat[index];
-                  final isPlaying = _playingAyahNomor == ayah.nomorAyat;
-
-                  return Column(
+              return Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: Theme.of(context).primaryColor.withOpacity(0.05),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => _playFullSurah(detail.audioFull),
+                          icon: Icon(_isPlayingFullSurah ? Icons.pause : Icons.play_arrow),
+                          label: const Text('Full Murottal'),
+                        ),
+                        if (_isDownloading)
+                          const CircularProgressIndicator()
+                        else
+                          OutlinedButton.icon(
+                            onPressed: () => _downloadFullSurah(detail.audioFull),
+                            icon: const Icon(Icons.download),
+                            label: const Text('Download'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: detail.ayat.length,
+                      separatorBuilder: (context, index) => const Divider(height: 32),
+                      itemBuilder: (context, index) {
+                        final ayah = detail.ayat[index];
+                        final isPlaying = _playingAyahNomor == ayah.nomorAyat;
+                        
+                        return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Row(
@@ -143,9 +245,12 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                     ],
                   );
                 },
-              );
-            }
-            return const SizedBox.shrink();
+              ),
+            ),
+          ],
+        );
+      }
+      return const SizedBox.shrink();
           },
         ),
       ),

@@ -4,8 +4,10 @@ import '../../data/datasources/local/hive_storage.dart';
 import '../../data/datasources/remote/quran_remote_datasource.dart';
 import '../../domain/repositories/quran_repository.dart';
 import '../../data/repositories/quran_repository_impl.dart';
+import '../../core/network/download_manager.dart';
 import '../../presentation/bloc/surah_list/surah_list_bloc.dart';
 import '../../presentation/bloc/surah_detail/surah_detail_bloc.dart';
+import '../../presentation/bloc/tafsir/tafsir_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -17,6 +19,10 @@ Future<void> init() async {
   final hiveStorage = HiveStorage();
   await hiveStorage.init();
   sl.registerLazySingleton<HiveStorage>(() => hiveStorage);
+
+  sl.registerLazySingleton<DownloadManager>(
+    () => DownloadManager(dio: sl<DioClient>().dio, hiveStorage: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<QuranRemoteDataSource>(
@@ -34,4 +40,5 @@ Future<void> init() async {
   // Blocs
   sl.registerFactory(() => SurahListBloc(repository: sl()));
   sl.registerFactory(() => SurahDetailBloc(repository: sl()));
+  sl.registerFactory(() => TafsirBloc(repository: sl()));
 }
