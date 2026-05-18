@@ -25,6 +25,18 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
   int? _playingAyahNomor;
 
   @override
+  void initState() {
+    super.initState();
+    _audioPlayer.playerStateStream.listen((state) {
+      if (state.processingState == ProcessingState.completed) {
+        if (mounted) {
+          setState(() => _playingAyahNomor = null);
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _audioPlayer.dispose();
     super.dispose();
@@ -37,13 +49,10 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         setState(() => _playingAyahNomor = null);
       } else {
         setState(() => _playingAyahNomor = ayahNomor);
+        print('Playing audio for ayah $ayahNomor: $url');
+        await _audioPlayer.stop();
         await _audioPlayer.setUrl(url);
         await _audioPlayer.play();
-        _audioPlayer.playerStateStream.listen((state) {
-          if (state.processingState == ProcessingState.completed) {
-            setState(() => _playingAyahNomor = null);
-          }
-        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
