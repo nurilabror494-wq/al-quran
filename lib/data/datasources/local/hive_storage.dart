@@ -1,8 +1,8 @@
 import 'package:hive_flutter/hive_flutter.dart';
-import '../models/surah_model.dart';
-import '../models/ayah_model.dart';
-import '../models/surah_detail_model.dart';
-import '../models/tafsir_model.dart';
+import '../../models/surah_model.dart';
+import '../../models/ayah_model.dart';
+import '../../models/surah_detail_model.dart';
+import '../../models/tafsir_model.dart';
 
 class HiveStorage {
   static const String surahsBoxName = 'surahs_box';
