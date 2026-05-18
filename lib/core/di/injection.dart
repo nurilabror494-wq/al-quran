@@ -4,6 +4,8 @@ import '../../data/datasources/local/hive_storage.dart';
 import '../../data/datasources/remote/quran_remote_datasource.dart';
 import '../../domain/repositories/quran_repository.dart';
 import '../../data/repositories/quran_repository_impl.dart';
+import '../../presentation/bloc/surah_list/surah_list_bloc.dart';
+import '../../presentation/bloc/surah_detail/surah_detail_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -29,5 +31,7 @@ Future<void> init() async {
     ),
   );
 
-  // Blocs (to be added in next phase)
+  // Blocs
+  sl.registerFactory(() => SurahListBloc(repository: sl()));
+  sl.registerFactory(() => SurahDetailBloc(repository: sl()));
 }

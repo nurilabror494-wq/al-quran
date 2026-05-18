@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection.dart' as di;
+import 'presentation/pages/surah_list_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,23 +19,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const InitialScreen(),
-    );
-  }
-}
-
-class InitialScreen extends StatelessWidget {
-  const InitialScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Al-Quran App'),
-      ),
-      body: const Center(
-        child: Text('Bismillah. Inisialisasi Berhasil!'),
-      ),
+      home: const SurahListPage(),
     );
   }
 }
