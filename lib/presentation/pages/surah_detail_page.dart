@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../../core/di/injection.dart';
 import '../bloc/surah_detail/surah_detail_bloc.dart';
 import '../bloc/surah_detail/surah_detail_event.dart';
@@ -139,6 +140,22 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
         appBar: AppBar(
           title: Text(widget.namaSurah),
           actions: [
+            ValueListenableBuilder(
+              valueListenable: Hive.box<List>(HiveStorage.favoritesBoxName).listenable(keys: ['fav_surahs']),
+              builder: (context, Box<List> box, _) {
+                final isFav = sl<HiveStorage>().isFavorite(widget.nomorSurah);
+                return IconButton(
+                  icon: Icon(
+                    isFav ? Icons.favorite : Icons.favorite_border,
+                    color: isFav ? Colors.red : null,
+                  ),
+                  tooltip: isFav ? 'Hapus dari Tersimpan' : 'Simpan Surat',
+                  onPressed: () {
+                    sl<HiveStorage>().toggleFavorite(widget.nomorSurah);
+                  },
+                );
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.menu_book),
               tooltip: 'Tafsir',

@@ -12,6 +12,7 @@ class HiveStorage {
   static const String downloadBoxName = 'download_box';
 
   static const String settingsBoxName = 'settings_box';
+  static const String favoritesBoxName = 'favorites_box';
 
   Future<void> init() async {
     await Hive.initFlutter();
@@ -27,6 +28,7 @@ class HiveStorage {
     await Hive.openBox<Map>(lastReadBoxName);
     await Hive.openBox<String>(downloadBoxName);
     await Hive.openBox(settingsBoxName);
+    await Hive.openBox<List>(favoritesBoxName);
   }
 
   Future<void> saveSurahs(List<SurahModel> surahs) async {
@@ -104,5 +106,30 @@ class HiveStorage {
   dynamic getSettings(String key, {dynamic defaultValue}) {
     final box = Hive.box(settingsBoxName);
     return box.get(key, defaultValue: defaultValue);
+  }
+
+  // --- Favorites ---
+  Future<void> toggleFavorite(int nomorSurah) async {
+    final box = Hive.box<List>(favoritesBoxName);
+    List<int> favs = getFavorites();
+    if (favs.contains(nomorSurah)) {
+      favs.remove(nomorSurah);
+    } else {
+      favs.add(nomorSurah);
+    }
+    await box.put('fav_surahs', favs);
+  }
+
+  bool isFavorite(int nomorSurah) {
+    return getFavorites().contains(nomorSurah);
+  }
+
+  List<int> getFavorites() {
+    final box = Hive.box<List>(favoritesBoxName);
+    final data = box.get('fav_surahs');
+    if (data != null) {
+      return data.cast<int>();
+    }
+    return [];
   }
 }

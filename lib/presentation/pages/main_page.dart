@@ -8,6 +8,7 @@ import '../bloc/surah_list/surah_list_event.dart';
 import 'surah_list_page.dart';
 import 'settings_page.dart';
 import 'surah_detail_page.dart';
+import 'favorite_surahs_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key});
@@ -22,6 +23,7 @@ class _MainPageState extends State<MainPage> {
   final List<Widget> _pages = [
     const HomePage(),
     const SurahListPage(),
+    const FavoriteSurahsPage(),
     const SettingsPage(),
   ];
 
@@ -43,6 +45,7 @@ class _MainPageState extends State<MainPage> {
         ),
         child: BottomNavigationBar(
           elevation: 0,
+          type: BottomNavigationBarType.fixed,
           backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           selectedItemColor: Theme.of(context).primaryColor,
           unselectedItemColor: Theme.of(context).textTheme.bodySmall?.color,
@@ -62,6 +65,11 @@ class _MainPageState extends State<MainPage> {
               icon: Icon(Icons.menu_book_outlined),
               activeIcon: Icon(Icons.menu_book),
               label: 'Al-Quran',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.favorite_outline),
+              activeIcon: Icon(Icons.favorite),
+              label: 'Tersimpan',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings_outlined),
