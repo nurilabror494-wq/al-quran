@@ -13,11 +13,13 @@ class SettingsCubit extends Cubit<SettingsState> {
     final themeMode = hiveStorage.getSettings('themeMode', defaultValue: 'system');
     final arabicFontSize = hiveStorage.getSettings('arabicFontSize', defaultValue: 28.0);
     final showTranslation = hiveStorage.getSettings('showTranslation', defaultValue: true);
+    final qari = hiveStorage.getSettings('qari', defaultValue: 'Abdullah-Al-Juhany');
 
     emit(SettingsState(
       themeMode: themeMode,
       arabicFontSize: arabicFontSize,
       showTranslation: showTranslation,
+      qari: qari,
     ));
   }
 
@@ -34,5 +36,10 @@ class SettingsCubit extends Cubit<SettingsState> {
   void toggleTranslation(bool show) {
     hiveStorage.saveSettings('showTranslation', show);
     emit(state.copyWith(showTranslation: show));
+  }
+
+  void updateQari(String newQari) {
+    hiveStorage.saveSettings('qari', newQari);
+    emit(state.copyWith(qari: newQari));
   }
 }

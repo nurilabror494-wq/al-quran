@@ -61,6 +61,29 @@ class SettingsPage extends StatelessWidget {
                   },
                 ),
               ),
+              const Divider(),
+              const _SectionHeader(title: 'Audio Murottal'),
+              ListTile(
+                leading: const Icon(Icons.record_voice_over),
+                title: const Text('Pengisi Suara (Qari)'),
+                subtitle: const Text('Pilih Qari untuk memutar audio'),
+                trailing: DropdownButton<String>(
+                  value: state.qari,
+                  onChanged: (String? newValue) {
+                    if (newValue != null) {
+                      context.read<SettingsCubit>().updateQari(newValue);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(value: 'Abdullah-Al-Juhany', child: Text('Abdullah Al-Juhany')),
+                    DropdownMenuItem(value: 'Abdul-Muhsin-Al-Qasim', child: Text('Abdul Muhsin Al-Qasim')),
+                    DropdownMenuItem(value: 'Abdurrahman-as-Sudais', child: Text('Abdurrahman as-Sudais')),
+                    DropdownMenuItem(value: 'Ibrahim-Al-Dossari', child: Text('Ibrahim Al-Dossari')),
+                    DropdownMenuItem(value: 'Misyari-Rasyid-Al-Afasi', child: Text('Misyari Rasyid Al-Afasi')),
+                    DropdownMenuItem(value: 'Yasser-Al-Dosari', child: Text('Yasser Al-Dosari')),
+                  ],
+                ),
+              ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),

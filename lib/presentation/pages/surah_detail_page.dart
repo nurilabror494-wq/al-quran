@@ -68,9 +68,12 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
           _isPlayingFullSurah = false;
         });
         
+        final qari = context.read<SettingsCubit>().state.qari;
+        final finalUrl = url.replaceFirst('Abdullah-Al-Juhany', qari);
+
         // Check if downloaded
-        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(url);
-        final playUrl = localPath ?? url;
+        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(finalUrl);
+        final playUrl = localPath ?? finalUrl;
 
         await _audioPlayer.stop();
         if (localPath != null) {
@@ -100,8 +103,11 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
           _playingAyahNomor = null;
         });
         
-        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(url);
-        final playUrl = localPath ?? url;
+        final qari = context.read<SettingsCubit>().state.qari;
+        final finalUrl = url.replaceFirst('Abdullah-Al-Juhany', qari);
+
+        final localPath = sl<DownloadManager>().getLocalPathIfDownloaded(finalUrl);
+        final playUrl = localPath ?? finalUrl;
 
         await _audioPlayer.stop();
         if (localPath != null) {
@@ -122,7 +128,10 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
 
   void _downloadFullSurah(String url) async {
     setState(() => _isDownloading = true);
-    final path = await sl<DownloadManager>().downloadAudio(url, 'surah_${widget.nomorSurah}.mp3', null);
+    final qari = context.read<SettingsCubit>().state.qari;
+    final finalUrl = url.replaceFirst('Abdullah-Al-Juhany', qari);
+    
+    final path = await sl<DownloadManager>().downloadAudio(finalUrl, 'surah_${widget.nomorSurah}_$qari.mp3', null);
     if (!mounted) return;
     setState(() => _isDownloading = false);
     if (path != null) {
