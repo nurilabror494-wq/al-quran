@@ -5,17 +5,36 @@ import '../bloc/surah_list/surah_list_bloc.dart';
 import '../bloc/surah_list/surah_list_event.dart';
 import '../bloc/surah_list/surah_list_state.dart';
 import 'surah_detail_page.dart';
-import '../../data/datasources/local/hive_storage.dart';
-import 'settings_page.dart';
 
 class SurahListPage extends StatefulWidget {
-  const SurahListPage({super.key});
+  final bool focusSearch;
+
+  const SurahListPage({super.key, this.focusSearch = false});
 
   @override
   State<SurahListPage> createState() => _SurahListPageState();
 }
 
 class _SurahListPageState extends State<SurahListPage> {
+  late final FocusNode _searchFocusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode = FocusNode();
+    if (widget.focusSearch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _searchFocusNode.requestFocus();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
   void _refresh() {
     setState(() {});
   }
@@ -26,119 +45,13 @@ class _SurahListPageState extends State<SurahListPage> {
       create: (context) => sl<SurahListBloc>()..add(FetchSurahList()),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Al-Quran Offline', style: TextStyle(fontWeight: FontWeight.bold)),
+          title: const Text('Daftar Surat', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20)),
           elevation: 0,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.settings),
-              tooltip: 'Pengaturan',
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
-              },
-            ),
-          ],
         ),
         body: Column(
           children: [
-            _buildLastRead(),
             _buildSearchBar(),
             Expanded(child: _buildSurahList()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLastRead() {
-    final lastRead = sl<HiveStorage>().getLastRead();
-    if (lastRead == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).primaryColor,
-              Theme.of(context).colorScheme.secondary,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).primaryColor.withAlpha(76),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.menu_book, color: Colors.white, size: 40),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Terakhir Dibaca',
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Surat ${lastRead['namaSurah']}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Ayat ${lastRead['nomorAyat']}',
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.play_circle_fill, color: Colors.white, size: 36),
-                  onPressed: () async {
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => SurahDetailPage(
-                          nomorSurah: lastRead['nomorSurah'],
-                          namaSurah: lastRead['namaSurah'],
-                        ),
-                      ),
-                    );
-                    _refresh();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.white70),
-                  tooltip: 'Hapus Riwayat',
-                  onPressed: () async {
-                    await sl<HiveStorage>().clearLastRead();
-                    _refresh();
-                    if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Riwayat bacaan dihapus')),
-                    );
-                  },
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -149,13 +62,30 @@ class _SurahListPageState extends State<SurahListPage> {
     return Builder(
       builder: (context) {
         return Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 16.0),
           child: TextField(
+            focusNode: _searchFocusNode,
             decoration: InputDecoration(
               hintText: 'Cari surat...',
               prefixIcon: const Icon(Icons.search),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Theme.of(context).dividerColor.withOpacity(0.1),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Theme.of(context).primaryColor,
+                  width: 1.5,
+                ),
               ),
               filled: true,
               fillColor: Theme.of(context).cardColor,
@@ -185,6 +115,11 @@ class _SurahListPageState extends State<SurahListPage> {
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () => context.read<SurahListBloc>().add(FetchSurahList()),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   child: const Text('Coba Lagi'),
                 ),
               ],
@@ -196,37 +131,13 @@ class _SurahListPageState extends State<SurahListPage> {
             return const Center(child: Text('Surat tidak ditemukan.'));
           }
           return ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: surahs.length,
-            separatorBuilder: (context, index) => const Divider(height: 1),
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final surah = surahs[index];
-              return ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).primaryColor.withAlpha(25),
-                  ),
-                  child: Text(
-                    surah.nomor.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                ),
-                title: Text(surah.namaLatin, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('${surah.arti} • ${surah.jumlahAyat} Ayat'),
-                trailing: Text(
-                  surah.nama,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Amiri', // Assuming standard arabic font is not needed or we rely on system
-                  ),
-                ),
+              return InkWell(
+                borderRadius: BorderRadius.circular(12),
                 onTap: () async {
                   await Navigator.push(
                     context,
@@ -239,6 +150,66 @@ class _SurahListPageState extends State<SurahListPage> {
                   );
                   _refresh();
                 },
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context).dividerColor.withOpacity(0.05),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          surah.nomor.toString(),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              surah.namaLatin, 
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${surah.arti} • ${surah.jumlahAyat} Ayat',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(context).textTheme.bodySmall?.color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        surah.nama,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                          fontFamily: 'Amiri', // assuming device has it or falls back to system arabic
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             },
           );

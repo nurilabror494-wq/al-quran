@@ -65,8 +65,11 @@ class SettingsPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withAlpha(25),
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Theme.of(context).dividerColor.withOpacity(0.1),
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -81,6 +84,7 @@ class SettingsPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: state.arabicFontSize,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'Amiri', // Add Amiri for better rendering if needed
                       ),
                     ),
                     if (state.showTranslation) ...[

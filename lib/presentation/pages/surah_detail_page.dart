@@ -167,7 +167,15 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                 children: [
                   Container(
                     padding: const EdgeInsets.all(16),
-                    color: Theme.of(context).primaryColor.withAlpha(13),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).cardColor,
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context).dividerColor.withOpacity(0.1),
+                          width: 1,
+                        ),
+                      ),
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -175,6 +183,12 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                           onPressed: () => _playFullSurah(detail.audioFull),
                           icon: Icon(_isPlayingFullSurah ? Icons.pause : Icons.play_arrow),
                           label: const Text('Full Murottal'),
+                          style: ElevatedButton.styleFrom(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                         ),
                         if (_isDownloading)
                           const CircularProgressIndicator()
@@ -183,6 +197,11 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                             onPressed: () => _downloadFullSurah(detail.audioFull),
                             icon: const Icon(Icons.download),
                             label: const Text('Download'),
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -207,8 +226,11 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                       decoration: BoxDecoration(
-                                        color: Theme.of(context).primaryColor.withAlpha(25),
-                                        borderRadius: BorderRadius.circular(16),
+                                        color: Theme.of(context).scaffoldBackgroundColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: Theme.of(context).dividerColor.withOpacity(0.1),
+                                        ),
                                       ),
                                       child: Text(
                                         'Ayat ${ayah.nomorAyat}',
@@ -235,6 +257,7 @@ class _SurahDetailPageState extends State<SurahDetailPage> {
                                   style: TextStyle(
                                     fontSize: settingsState.arabicFontSize,
                                     fontWeight: FontWeight.bold,
+                                    fontFamily: 'Amiri', // Added Amiri font family
                                     height: 2.0,
                                   ),
                                 ),

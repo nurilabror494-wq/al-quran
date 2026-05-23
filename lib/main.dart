@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme/app_theme.dart';
 import 'core/di/injection.dart' as di;
-import 'presentation/pages/surah_list_page.dart';
+import 'presentation/pages/splash_page.dart';
 import 'presentation/bloc/settings/settings_cubit.dart';
 import 'presentation/bloc/settings/settings_state.dart';
 
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
-            home: const SurahListPage(),
+            home: const SplashPage(),
           );
         },
       ),
